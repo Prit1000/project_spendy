@@ -1,0 +1,212 @@
+/* ------------------------------------------------------------------ */
+/* Landing page — hero overrides                                       */
+/* Scoped to .lp-* so nothing in style.css is affected.               */
+/* ------------------------------------------------------------------ */
+
+/* Hero wrapper */
+.lp-hero {
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+}
+
+.lp-hero-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Badge */
+.lp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 71, 42, 0.18);
+}
+
+.lp-badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Headline */
+.lp-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+}
+
+.lp-title-accent {
+    color: var(--accent);
+}
+
+/* Subtitle */
+.lp-subtitle {
+    font-size: 1rem;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* CTA buttons */
+.lp-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.lp-btn {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.65rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.lp-btn:hover {
+    background: var(--accent);
+}
+
+/* App preview frame */
+.lp-preview {
+    width: 100%;
+    max-width: 700px;
+    background: var(--paper-warm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.07);
+    margin-top: 0.5rem;
+}
+
+/* Traffic light bar */
+.lp-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper-warm);
+}
+
+.lp-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.lp-dot-red    { background: #ff5f57; }
+.lp-dot-yellow { background: #febc2e; }
+.lp-dot-green  { background: #28c840; }
+
+/* Preview body */
+.lp-preview-body {
+    padding: 1.5rem;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Stat cards row */
+.lp-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.lp-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.lp-stat-label {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+
+.lp-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--ink);
+    line-height: 1.1;
+}
+
+.lp-stat-trend {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.lp-trend-up { color: var(--accent); }
+.lp-trend-ok { color: var(--accent-2); }
+
+.lp-stat-sub {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+}
+
+/* Category bars */
+.lp-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.lp-bar-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lp-bar-cat {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-align: left;
+}
+
+.lp-bar-track {
+    height: 7px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.lp-bar {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.lp-bar-food   { background: #c17f24; }
+.lp-bar-travel { background: #5b7fa6; }
+.lp-bar-bills  { background: #8b5e83; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .lp-stats { grid-template-columns: 1fr 1fr; }
+    .lp-stats .lp-stat:last-child { grid-column: 1 / -1; }
+    .lp-title { font-size: 2.2rem; }
+    .lp-subtitle br { display: none; }
+}
