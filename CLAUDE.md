@@ -36,9 +36,8 @@ No build step — Flask serves directly.
 
 ## CSS Architecture
 
-Two-file system:
-- `static/css/style.css` — global design system (CSS custom properties, navbar, auth components, footer, legal pages, reusable buttons)
-- `static/css/landing.css` — landing-only styles, all scoped under `.lp-*` prefix to avoid collisions; loaded via `{% block head %}` in `landing.html`
+Single-file system:
+- `static/css/style.css` — all styles: global design system (CSS custom properties, navbar, auth components, footer, legal pages, reusable buttons) plus landing-page styles scoped under `.lp-*` prefix at the bottom of the file
 
 Landing page preview mockup uses inline `style="width: X%"` on `.lp-bar` elements — these are static decorations, not data-driven.
 
