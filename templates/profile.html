@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+  <div class="profile-container">
+
+    <div>
+      <h1 class="profile-heading">My Profile</h1>
+      <p class="profile-subheading">Your account details and spending overview</p>
+    </div>
+
+    <!-- Account card -->
+    <div class="profile-card">
+      <div class="profile-identity">
+        <div class="profile-avatar">{{ user['name'][0] | upper }}</div>
+        <div>
+          <p class="profile-name">{{ user['name'] }}</p>
+          <p class="profile-email">{{ user['email'] }}</p>
+        </div>
+      </div>
+      <span class="profile-member-badge">
+        <i data-lucide="calendar"></i>
+        Member since {{ user['created_at'][:10] }}
+      </span>
+    </div>
+
+    <!-- Summary stat cards -->
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="profile-stat-icon"><i data-lucide="receipt"></i></div>
+        <span class="profile-stat-label">Total Expenses</span>
+        <span class="profile-stat-value">{{ summary['count'] }}</span>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-icon"><i data-lucide="wallet"></i></div>
+        <span class="profile-stat-label">Total Spent</span>
+        <span class="profile-stat-value">₹{{ "%.2f"|format(summary['total']) }}</span>
+      </div>
+    </div>
+
+    <!-- Category breakdown -->
+    <div class="profile-card">
+      <p class="profile-section-title">Spending by Category</p>
+      {% if categories %}
+        <div class="profile-cat-list">
+          {% for cat in categories %}
+          <div class="profile-cat-row">
+            <span class="profile-cat-name">{{ cat['category'] }}</span>
+            <div class="profile-cat-bar-wrap">
+              <div class="profile-cat-bar"
+                   style="width:{{ ((cat['total'] / summary['total']) * 100) | round(1) if summary['total'] else 0 }}%">
+              </div>
+            </div>
+            <span class="profile-cat-amount">₹{{ "%.0f"|format(cat['total']) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="profile-empty">No expenses recorded yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="profile-card">
+      <p class="profile-section-title">Recent Transactions</p>
+      {% if expenses %}
+        <table class="profile-txn-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for exp in expenses %}
+            <tr>
+              <td class="col-date">{{ exp['date'] }}</td>
+              <td>{{ exp['description'] or '—' }}</td>
+              <td><span class="profile-badge">{{ exp['category'] }}</span></td>
+              <td class="col-amount">₹{{ "%.2f"|format(exp['amount']) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="profile-empty">No transactions yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+{% endblock %}
