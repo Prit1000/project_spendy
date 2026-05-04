@@ -32,7 +32,29 @@ No build step — Flask serves directly.
 
 **Auth forms** (`login.html`, `register.html`) already check `{% if error %}` and render an `.auth-error` div — POST handlers just need to pass `error=` to `render_template`.
 
-**Educational step numbering:** placeholder routes in `app.py` are commented with the step at which students implement them (Step 3 = logout, Step 4 = profile, Steps 7–9 = expense CRUD). Don't remove those comments.
+**Educational step numbering:** placeholder routes in `app.py` are commented with the step at which students implement them. Current roadmap:
+- Step 01 — Database Setup (✓ complete)
+- Step 02 — Registration (✓ complete)
+- Step 03 — Login and Logout (✓ complete)
+- Step 04 — Profile Page (in progress)
+- Steps 05–06 — (planned)
+- Steps 07–09 — Expense CRUD (placeholders exist; students will implement add/edit/delete)
+
+Don't remove step comments from placeholder routes; they guide students on what to implement and in what order.
+
+**Database functions:** All database operations go through `database/db.py`. The intended interface is:
+- `get_db()` — returns a SQLite connection with `row_factory = sqlite3.Row` and foreign keys enabled
+- `init_db()` — creates tables if they don't exist (idempotent)
+- `seed_db()` — populates demo data on first run only
+- `create_user(name, email, password_hash)` — inserts a user, returns `user_id`
+- `get_user_by_email(email)` — returns a user row or `None`
+- Additional query functions follow the pattern: parameterised queries, `try/finally` for connection cleanup
+
+**Feature specifications:** Each feature is defined in a spec document before implementation:
+- Location: `.claude/specs/<step_number>-<feature_slug>.md` (e.g., `04-profile-page.md`)
+- Content: routes, database changes, templates, files to modify, rules, and a testable definition of done
+- Workflow: run `/create-spec <feature_title>` to generate a new spec, review it, then implement
+- Purpose: specs provide a contract between planning and coding, making reviews and handoffs clear
 
 ## CSS Architecture
 
