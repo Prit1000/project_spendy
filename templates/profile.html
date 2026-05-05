@@ -11,6 +11,41 @@
       <p class="profile-subheading">Your account details and spending overview</p>
     </div>
 
+    <!-- Date filter card -->
+    <div class="profile-card">
+      <p class="profile-section-title">Filter by Date</p>
+      <div class="profile-preset-chips">
+        <a id="preset-all"  class="profile-preset" href="{{ url_for('profile') }}">All Time</a>
+        <a id="preset-this" class="profile-preset" href="#">This Month</a>
+        <a id="preset-last" class="profile-preset" href="#">Last Month</a>
+        <a id="preset-3mo"  class="profile-preset" href="#">Last 3 Months</a>
+        <a id="preset-6mo"  class="profile-preset" href="#">Last 6 Months</a>
+      </div>
+      <form method="GET" action="{{ url_for('profile') }}" class="profile-filter-form">
+        <div class="profile-filter-field">
+          <label for="from">From</label>
+          <input type="date" id="from" name="from" class="form-input"
+                 value="{{ date_from or '' }}">
+        </div>
+        <div class="profile-filter-field">
+          <label for="to">To</label>
+          <input type="date" id="to" name="to" class="form-input"
+                 value="{{ date_to or '' }}">
+        </div>
+        <div class="profile-filter-actions">
+          <button type="submit" class="btn-primary">Filter</button>
+          {% if date_from or date_to %}
+            <a href="{{ url_for('profile') }}" class="btn-ghost">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+      {% if date_from or date_to %}
+      <p class="profile-filter-active">
+        Showing: {{ date_from if date_from else '…' }} – {{ date_to if date_to else '…' }}
+      </p>
+      {% endif %}
+    </div>
+
     <!-- Account card -->
     <div class="profile-card">
       <div class="profile-identity">
@@ -96,4 +131,43 @@
 {% block scripts %}
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>lucide.createIcons();</script>
+<script>
+const profileUrl = "{{ url_for('profile') }}";
+(function () {
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const today = new Date();
+  const todayStr = fmt(today);
+
+  const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastMonthEnd   = new Date(today.getFullYear(), today.getMonth(), 0);
+  const lastMonthStart = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1);
+
+  let last3Start = new Date(today);
+  last3Start.setMonth(last3Start.getMonth() - 3);
+
+  let last6Start = new Date(today);
+  last6Start.setMonth(last6Start.getMonth() - 6);
+
+  const presets = [
+    { id: 'preset-all',  from: null,               to: null },
+    { id: 'preset-this', from: fmt(thisMonthStart), to: todayStr },
+    { id: 'preset-last', from: fmt(lastMonthStart), to: fmt(lastMonthEnd) },
+    { id: 'preset-3mo',  from: fmt(last3Start),     to: todayStr },
+    { id: 'preset-6mo',  from: fmt(last6Start),     to: todayStr }
+  ];
+
+  const params  = new URLSearchParams(window.location.search);
+  const curFrom = params.get('from') || '';
+  const curTo   = params.get('to')   || '';
+
+  presets.forEach((p) => {
+    const el = document.getElementById(p.id);
+    if (!el) return;
+    el.href = p.from ? profileUrl + '?from=' + p.from + '&to=' + p.to : profileUrl;
+    if ((p.from || '') === curFrom && (p.to || '') === curTo) {
+      el.classList.add('profile-preset-active');
+    }
+  });
+})();
+</script>
 {% endblock %}
