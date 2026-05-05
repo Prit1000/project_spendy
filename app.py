@@ -1,7 +1,8 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id, get_expense_summary, get_recent_expenses, get_category_breakdown
+from database.db import init_db, seed_db, create_user, get_user_by_email
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-change-in-production"
@@ -101,8 +102,8 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
     user       = get_user_by_id(session["user_id"])
-    summary    = get_expense_summary(session["user_id"])
-    expenses   = get_recent_expenses(session["user_id"])
+    summary    = get_summary_stats(session["user_id"])
+    expenses   = get_recent_transactions(session["user_id"])
     categories = get_category_breakdown(session["user_id"])
     return render_template("profile.html", user=user, summary=summary,
                            expenses=expenses, categories=categories)

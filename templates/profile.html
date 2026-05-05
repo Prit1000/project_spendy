@@ -22,7 +22,7 @@
       </div>
       <span class="profile-member-badge">
         <i data-lucide="calendar"></i>
-        Member since {{ user['created_at'][:10] }}
+        Member since {{ user['member_since'] }}
       </span>
     </div>
 
@@ -31,12 +31,12 @@
       <div class="profile-stat">
         <div class="profile-stat-icon"><i data-lucide="receipt"></i></div>
         <span class="profile-stat-label">Total Expenses</span>
-        <span class="profile-stat-value">{{ summary['count'] }}</span>
+        <span class="profile-stat-value">{{ summary['transaction_count'] }}</span>
       </div>
       <div class="profile-stat">
         <div class="profile-stat-icon"><i data-lucide="wallet"></i></div>
         <span class="profile-stat-label">Total Spent</span>
-        <span class="profile-stat-value">₹{{ "%.2f"|format(summary['total']) }}</span>
+        <span class="profile-stat-value">₹{{ "%.2f"|format(summary['total_spent']) }}</span>
       </div>
     </div>
 
@@ -47,13 +47,11 @@
         <div class="profile-cat-list">
           {% for cat in categories %}
           <div class="profile-cat-row">
-            <span class="profile-cat-name">{{ cat['category'] }}</span>
+            <span class="profile-cat-name">{{ cat['name'] }}</span>
             <div class="profile-cat-bar-wrap">
-              <div class="profile-cat-bar"
-                   style="width:{{ ((cat['total'] / summary['total']) * 100) | round(1) if summary['total'] else 0 }}%">
-              </div>
+              <div class="profile-cat-bar" style="width:{{ cat['pct'] }}%"></div>
             </div>
-            <span class="profile-cat-amount">₹{{ "%.0f"|format(cat['total']) }}</span>
+            <span class="profile-cat-amount">₹{{ "%.0f"|format(cat['amount']) }}</span>
           </div>
           {% endfor %}
         </div>
