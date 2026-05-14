@@ -47,10 +47,10 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     try:
         clause, params = _date_filter(date_from, date_to)
         rows = conn.execute(
-            f"SELECT date, description, category, amount FROM expenses WHERE user_id = ?{clause} ORDER BY date DESC LIMIT ?",
+            f"SELECT id, date, description, category, amount FROM expenses WHERE user_id = ?{clause} ORDER BY date DESC LIMIT ?",
             [user_id] + params + [limit]
         ).fetchall()
-        return [{"date": row["date"], "description": row["description"], "category": row["category"], "amount": row["amount"]} for row in rows]
+        return [{"id": row["id"], "date": row["date"], "description": row["description"], "category": row["category"], "amount": row["amount"]} for row in rows]
     finally:
         conn.close()
 

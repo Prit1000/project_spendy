@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import init_db, seed_db, create_user, get_user_by_email, create_expense
+from database.db import init_db, seed_db, create_user, get_user_by_email, create_expense, get_expense_by_id, update_expense
 from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
 
 app = Flask(__name__)
@@ -140,6 +140,35 @@ def analytics():
     return render_template("analytics.html")
 
 
+def _validate_expense_form(form):
+    """Parse and validate expense form fields.
+    Returns (amount, category, date_str, description, error).
+    On error: amount is the raw submitted string; error is a message string.
+    On success: amount is float, description is str or None, error is None."""
+    amount_str  = form.get("amount", "").strip()
+    category    = form.get("category", "")
+    date_str    = form.get("date", "").strip()
+    description = form.get("description", "").strip()[:200]
+
+    try:
+        amount = float(amount_str)
+    except ValueError:
+        return amount_str, category, date_str, description, "Amount must be a positive number."
+
+    if not math.isfinite(amount) or amount <= 0 or amount > MAX_AMOUNT:
+        return amount_str, category, date_str, description, "Amount must be a positive number."
+
+    if category not in EXPENSE_CATEGORIES:
+        return amount_str, category, date_str, description, "Please select a valid category."
+
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return amount_str, category, date_str, description, "Date must be a valid date in YYYY-MM-DD format."
+
+    return amount, category, date_str, description or None, None
+
+
 @app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
     # Step 7
@@ -149,41 +178,43 @@ def add_expense():
     if request.method == "GET":
         return render_template("add_expense.html", categories=EXPENSE_CATEGORIES)
 
-    amount_str  = request.form.get("amount", "").strip()
-    category    = request.form.get("category", "")
-    date_str    = request.form.get("date", "").strip()
-    description = request.form.get("description", "").strip()[:200]
-
-    form_values = dict(amount=amount_str, category=category,
-                       date=date_str, description=description)
-
-    try:
-        amount = float(amount_str)
-    except ValueError:
+    amount, category, date_str, description, error = _validate_expense_form(request.form)
+    if error:
         return render_template("add_expense.html", categories=EXPENSE_CATEGORIES,
-                               error="Amount must be a positive number.", **form_values)
+                               error=error,
+                               amount=amount, category=category, date=date_str, description=description)
 
-    if not math.isfinite(amount) or amount <= 0 or amount > MAX_AMOUNT:
-        return render_template("add_expense.html", categories=EXPENSE_CATEGORIES,
-                               error="Amount must be a positive number.", **form_values)
-
-    if category not in EXPENSE_CATEGORIES:
-        return render_template("add_expense.html", categories=EXPENSE_CATEGORIES,
-                               error="Please select a valid category.", **form_values)
-
-    try:
-        datetime.strptime(date_str, "%Y-%m-%d")
-    except ValueError:
-        return render_template("add_expense.html", categories=EXPENSE_CATEGORIES,
-                               error="Date must be a valid date in YYYY-MM-DD format.", **form_values)
-
-    create_expense(session["user_id"], amount, category, date_str, description or None)
+    create_expense(session["user_id"], amount, category, date_str, description)
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    # Step 8
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id)
+    if expense is None or expense["user_id"] != session["user_id"]:
+        return redirect(url_for("profile"))
+
+    if request.method == "GET":
+        return render_template("edit_expense.html", expense=expense,
+                               categories=EXPENSE_CATEGORIES,
+                               amount=expense["amount"],
+                               category=expense["category"],
+                               date=expense["date"],
+                               description=expense["description"] or "")
+
+    amount, category, date_str, description, error = _validate_expense_form(request.form)
+    if error:
+        return render_template("edit_expense.html", expense=expense,
+                               categories=EXPENSE_CATEGORIES,
+                               error=error,
+                               amount=amount, category=category, date=date_str, description=description)
+
+    update_expense(id, amount, category, date_str, description)
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
