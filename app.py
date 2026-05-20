@@ -6,9 +6,25 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import init_db, seed_db, create_user, get_user_by_email, create_expense, get_expense_by_id, update_expense, delete_expense as delete_expense_db
 from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+
+# --- Logging Setup ---
+os.makedirs("logs", exist_ok=True)
+_log_formatter = logging.Formatter(
+    "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+_file_handler = RotatingFileHandler(
+    "logs/spendly.log", maxBytes=1_000_000, backupCount=3
+)
+_file_handler.setFormatter(_log_formatter)
+_file_handler.setLevel(logging.INFO)
+app.logger.addHandler(_file_handler)
+app.logger.setLevel(logging.INFO)
 
 with app.app_context():
     init_db()
@@ -50,6 +66,7 @@ def register():
     try:
         password_hash = generate_password_hash(password)
         user_id = create_user(name, email, password_hash)
+        app.logger.info(f"REGISTER | user_id={user_id} | email={email}")
         session["user_id"]   = user_id
         session["user_name"] = name
     except sqlite3.IntegrityError:
@@ -73,10 +90,12 @@ def login():
 
     user = get_user_by_email(email)
     if not user or not check_password_hash(user["password_hash"], password):
+        app.logger.warning(f"LOGIN_FAILED | email={email} | reason=invalid_credentials")
         return render_template("login.html", error="Invalid email or password.")
 
     session["user_id"]   = user["id"]
     session["user_name"] = user["name"]
+    app.logger.info(f"LOGIN_SUCCESS | user_id={user['id']} | email={email}")
     return redirect(url_for("profile"))
 
 
@@ -97,6 +116,7 @@ def privacy():
 @app.route("/logout")
 def logout():
     # implemented early (Step 02) to unblock navbar — originally Step 03
+    app.logger.info(f"LOGOUT | user_id={session.get('user_id')}")
     session.clear()
     return redirect(url_for("landing"))
 
@@ -185,6 +205,7 @@ def add_expense():
                                amount=amount, category=category, date=date_str, description=description)
 
     create_expense(session["user_id"], amount, category, date_str, description)
+    app.logger.info(f"EXPENSE_ADD | user_id={session['user_id']} | amount={amount} | category={category} | date={date_str}")
     return redirect(url_for("profile"))
 
 
@@ -195,7 +216,10 @@ def edit_expense(id):
         return redirect(url_for("login"))
 
     expense = get_expense_by_id(id)
-    if expense is None or expense["user_id"] != session["user_id"]:
+    if expense is None:
+        return redirect(url_for("profile"))
+    if expense["user_id"] != session["user_id"]:
+        app.logger.warning(f"OWNERSHIP_VIOLATION | user_id={session['user_id']} | attempted_expense_id={id}")
         return redirect(url_for("profile"))
 
     if request.method == "GET":
@@ -214,6 +238,7 @@ def edit_expense(id):
                                amount=amount, category=category, date=date_str, description=description)
 
     update_expense(id, amount, category, date_str, description)
+    app.logger.info(f"EXPENSE_EDIT | user_id={session['user_id']} | expense_id={id} | amount={amount} | category={category}")
     return redirect(url_for("profile"))
 
 
@@ -224,13 +249,17 @@ def delete_expense(id):
         return redirect(url_for("login"))
 
     expense = get_expense_by_id(id)
-    if expense is None or expense["user_id"] != session["user_id"]:
+    if expense is None:
+        return redirect(url_for("profile"))
+    if expense["user_id"] != session["user_id"]:
+        app.logger.warning(f"OWNERSHIP_VIOLATION | user_id={session['user_id']} | attempted_expense_id={id}")
         return redirect(url_for("profile"))
 
     if request.method == "GET":
         return render_template("delete_expense.html", expense=expense)
 
     delete_expense_db(id)
+    app.logger.info(f"EXPENSE_DELETE | user_id={session['user_id']} | expense_id={id}")
     return redirect(url_for("profile"))
 
 

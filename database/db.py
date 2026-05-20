@@ -1,6 +1,9 @@
 import sqlite3
 import os
+import logging
 from werkzeug.security import generate_password_hash
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'expense_tracker.db')
 
@@ -46,6 +49,9 @@ def create_user(name, email, password_hash):
         )
         conn.commit()
         return cursor.lastrowid
+    except Exception as e:
+        logger.error(f"DB_ERROR | operation=create_user | error={e}")
+        raise
     finally:
         conn.close()
 
@@ -116,6 +122,9 @@ def create_expense(user_id, amount, category, date, description):
         )
         conn.commit()
         return cursor.lastrowid
+    except Exception as e:
+        logger.error(f"DB_ERROR | operation=create_expense | error={e}")
+        raise
     finally:
         conn.close()
 
@@ -139,6 +148,9 @@ def update_expense(expense_id, amount, category, date, description):
         )
         conn.commit()
         return cursor.rowcount
+    except Exception as e:
+        logger.error(f"DB_ERROR | operation=update_expense | error={e}")
+        raise
     finally:
         conn.close()
 
@@ -148,6 +160,9 @@ def delete_expense(expense_id):
     try:
         conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
         conn.commit()
+    except Exception as e:
+        logger.error(f"DB_ERROR | operation=delete_expense | error={e}")
+        raise
     finally:
         conn.close()
 
